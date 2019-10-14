@@ -5,29 +5,36 @@ const urlSchema=new mongoose.Schema(
 	{
 		shortlink: {
 			type: String,
-			trim: true,
 			unique: true
 		},
 		longlink: {
 			type: String,
 			unique: true,
-			trim: true,
 			validate(value){
 				if(!validator.isURL(value)){
 					throw new Error('URL is invalid')
 				}
 			}
+		},
+		customUrl: {
+			type: String,
+			unique: true
 		}
 	})
 
-urlSchema.method('generateShortLink', function(){
-	var result='';
-	var characters='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	var charactersLength = characters.length;
-	for ( var i = 0; i < 5; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-   }
-   return result;
+urlSchema.method('generateShortLink', function(customUrl){
+	if(customUrl.length){
+		var result = customUrl;
+	}
+	else{
+		var result='';
+		var characters='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		var charactersLength = characters.length;
+		for ( var i = 0; i < 5; i++ ) {
+	      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	   }
+	}
+	return result;
 })
 
 urlSchema.static('findByShortLink', async function(shortlink){
@@ -38,9 +45,14 @@ urlSchema.static('findByShortLink', async function(shortlink){
 	return url
 })
 
+urlSchema.static('getUrls', async function(){
+	const url=await Url.find()
+	return url
+})
+
 urlSchema.pre('save', async function(next){
 	const url=this
-	url.shortlink=this.generateShortLink()
+	url.shortlink=this.generateShortLink(url.customUrl)
 	next()
 })
 
