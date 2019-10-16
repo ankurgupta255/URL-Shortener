@@ -9,7 +9,6 @@ const urlSchema=new mongoose.Schema(
 		},
 		longlink: {
 			type: String,
-			unique: true,
 			validate(value){
 				if(!validator.isURL(value)){
 					throw new Error('URL is invalid')
